@@ -9,8 +9,11 @@
     --secondary-color: hsl(0, 0%, 20%);
     --text-color: hsl(0, 0%, 80%);
     --wrong-tile: hsl(0, 100%, 35%);
+    --wrong-tile-bg: hsl(0, 15%, 35%);
     --partially-correct-tile: hsl(48, 100%, 50%);
+    --partially-correct-tile-bg: hsl(48, 15%, 50%);
     --correct-tile: hsl(120, 60%, 50%);
+    --correct-tile-bg: hsl(120, 15%, 50%);
     --tile-size: calc(min(10vmin, 80px - (6 - var(--word-length)) * 6px));
 }
 
@@ -51,6 +54,21 @@ body {
 
 .tile.filled {
     border-color: #999;
+}
+
+.tile.partially-correct {
+    border-color: var(--partially-correct-tile);
+    background: var(--partially-correct-tile-bg);
+}
+
+.tile.correct {
+    border-color: var(--correct-tile);
+    background: var(--correct-tile-bg);
+}
+
+.tile.wrong {
+    border-color: var(--wrong-tile);
+    background: var(--wrong-tile-bg);
 }
 
 @media (min-width: 768px) {

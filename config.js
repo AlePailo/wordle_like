@@ -1,6 +1,8 @@
 export const gameSettings = {
-    wordLength : 5,
-    secretWord : "carta"
+    wordsList: null,
+    wordLength : null,
+    secretWord : null,
+    secretWordObj : {}
 }
 
 export const gameState = {
