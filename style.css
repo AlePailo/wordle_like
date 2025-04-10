@@ -44,7 +44,7 @@ body {
     aspect-ratio: 1;
     font-size: calc(var(--tile-size) * 0.6);
     background-color: var(--secondary-color);
-    border: 2px solid #ccc;
+    border: 2px solid #999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -53,7 +53,7 @@ body {
 }
 
 .tile.filled {
-    border-color: #999;
+    border-color: hsl(0, 0%, 90%);
 }
 
 .tile.partially-correct {
