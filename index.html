@@ -8,8 +8,49 @@
     <title>Wordle Like</title>
 </head>
 <body>
+    <div id="title-div"><h1>ANIMALDLE</h1></div>
+
     <div class="board">
-    </div>      
+    </div>
+
+    <div class="keyboard-container grid" aria-label="display-keyboard">
+        <div class="keyboard-key grid" data-key="q">Q</div>
+        <div class="keyboard-key grid" data-key="w">W</div>
+        <div class="keyboard-key grid" data-key="e">E</div>
+        <div class="keyboard-key grid" data-key="r">R</div>
+        <div class="keyboard-key grid" data-key="t">T</div>
+        <div class="keyboard-key grid" data-key="y">Y</div>
+        <div class="keyboard-key grid" data-key="u">U</div>
+        <div class="keyboard-key grid" data-key="i">I</div>
+        <div class="keyboard-key grid" data-key="o">O</div>
+        <div class="keyboard-key grid" data-key="p">P</div>
+        <div class="spacer-half"></div>
+        <div class="keyboard-key grid" data-key="a">A</div>
+        <div class="keyboard-key grid" data-key="s">S</div>
+        <div class="keyboard-key grid" data-key="d">D</div>
+        <div class="keyboard-key grid" data-key="f">F</div>
+        <div class="keyboard-key grid" data-key="g">G</div>
+        <div class="keyboard-key grid" data-key="h">H</div>
+        <div class="keyboard-key grid" data-key="j">J</div>
+        <div class="keyboard-key grid" data-key="k">K</div>
+        <div class="keyboard-key grid" data-key="l">L</div>
+        <div class="spacer-half"></div>
+        <div class="keyboard-key wide-button grid" data-key="enter">ENTER</div>
+        <div class="keyboard-key grid" data-key="z">Z</div>
+        <div class="keyboard-key grid" data-key="x">X</div>
+        <div class="keyboard-key grid" data-key="c">C</div>
+        <div class="keyboard-key grid" data-key="v">V</div>
+        <div class="keyboard-key grid" data-key="b">B</div>
+        <div class="keyboard-key grid" data-key="n">N</div>
+        <div class="keyboard-key grid" data-key="m">M</div>
+        <div class="keyboard-key wide-button grid" data-key="del">DEL</div>
+    </div>
+
+    <div id="endMessage">
+        <h3>Hai indovinato!</h3>
+        <p id="total-guesses"></p>
+        <button id="btn-restart-game">Gioca ancora</button>
+    </div>
 <script src="script.js" type="module"></script>
 </body>
 </html>

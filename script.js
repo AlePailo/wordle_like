@@ -4,6 +4,8 @@ $(document).ready(function() {
     initGame()
 
     $(document).on('keydown', checkKeyInput)
+    $("#btn-restart-game").click(resetGame)
+    $(".keyboard-key").click(checkDisplayKeyboardInput)
 })
 
 async function initGame() {
@@ -25,12 +27,13 @@ async function loadWordsList() {
 }
 
 function setupGame() {
-    gameSettings.secretWord = gameSettings.wordsList[Math.floor(Math.random() * gameSettings.wordsList.length)]
-    gameSettings.wordLength = gameSettings.secretWord.length
-    console.log("The secret word is: " + gameSettings.secretWord)
+    gameState.secretWord = gameSettings.wordsList[Math.floor(Math.random() * gameSettings.wordsList.length)]
+    gameState.wordLength = gameState.secretWord.length
+    console.log("The secret word is: " + gameState.secretWord)
+    gameState.secretWordObj = createSecretWordObj(gameState.secretWord.toLowerCase())
 
-    buildGrid(gameSettings.wordLength)
-    createSecretWordObj(gameSettings.secretWord.toLowerCase(), gameSettings.secretWordObj)
+    buildGrid(gameState.wordLength)
+    $('.keyboard-container').addClass('grid')
 }
 
 function buildGrid(wordLength) {
@@ -39,7 +42,7 @@ function buildGrid(wordLength) {
     const numRows = 6
 
     const rows = Array.from({ length: numRows }, (_, rowIndex) => {
-    const row = $('<div>').addClass('row')
+    const row = $('<div>').addClass('row grid')
     Array.from({ length: wordLength }).forEach(() => {
         $('<div>').addClass('tile').appendTo(row)
     })
@@ -49,13 +52,17 @@ function buildGrid(wordLength) {
     board.append(rows)
 }
 
-function createSecretWordObj(secretWord, secretWordObj) {
+function createSecretWordObj(secretWord) {
+    const obj = {}
     for (const char of secretWord) {
-        secretWordObj[char] = (secretWordObj[char] ?? 0) + 1;
+        obj[char] = (obj[char] ?? 0) + 1;
     }
+    return obj
 }
 
 function checkKeyInput(e) {
+    if(gameState.isGameOver) return
+
     const key = e.key.toLowerCase()
     
     if(/^[a-z]$/.test(key)) {
@@ -64,11 +71,11 @@ function checkKeyInput(e) {
         handleBackspaceInput(key)
     } else if(key === 'enter') {
         handleEnterInput(key)
-    } 
+    }
 }
 
 function handleLetterInput(key) {
-    if (gameState.currentTile < gameSettings.wordLength) {
+    if (gameState.currentTile < gameState.wordLength) {
         const $tile = $(`.row:eq(${gameState.currentRow}) .tile:eq(${gameState.currentTile})`)
         $tile.text(key).addClass('filled')
         gameState.currentTile++
@@ -84,7 +91,7 @@ function handleBackspaceInput(key) {
 }
 
 function handleEnterInput(key) {
-    if(gameState.currentTile !== gameSettings.wordLength) return
+    if(gameState.currentTile !== gameState.wordLength) return
 
     const guessTiles = $(`.row:eq(${gameState.currentRow}) .tile`)
     
@@ -95,22 +102,22 @@ function handleEnterInput(key) {
     const guess = guessLetters.join("")
 
     if(!gameSettings.wordsSet.has(guess)) {
-        /*gameState.currentTile = 0
-        guessTiles.removeClass("filled")
-        guessTiles.empty()*/
         alert("Parola non presente nella lista")
         return
     }
 
-    const secretWord = gameSettings.secretWord
+    const secretWord = gameState.secretWord
     const rightLettersWrongPlace = []
-    const secretWordObj = {...gameSettings.secretWordObj}
+    const secretWordObj = {...gameState.secretWordObj}
 
     guessTiles.each(function(i) {
         const char = guessLetters[i]
         
         if(char === secretWord[i]) {
             $(this).addClass('correct')
+
+            updateDisplayKeyboardKeyColor($(this).text(), 'correct')
+
             secretWordObj[char]--
         } else {
             rightLettersWrongPlace.push({ index : i, char })
@@ -121,17 +128,79 @@ function handleEnterInput(key) {
         const tile = guessTiles.eq(index)
         if(secretWordObj[char] > 0) {
             tile.addClass('partially-correct')
+            updateDisplayKeyboardKeyColor(tile.text(), 'partially-correct')
             secretWordObj[char]--
         } else {
             tile.addClass('wrong')
+            updateDisplayKeyboardKeyColor(tile.text(), 'wrong')
         }
     })
 
     if(guess === secretWord) {
-        console.log("INDOVINATO!")
+        gameState.isGameOver = true
+        showEndMessage()
         return
     }
 
     gameState.currentRow++
     gameState.currentTile = 0
+}
+
+function resetGame() {
+    gameState.currentRow = 0
+    gameState.currentTile = 0
+    gameState.isGameOver = false
+    gameState.secretWordObj = {}
+
+    $('.board').empty()
+
+    hideEndMessage()
+    $('.keyboard-container').removeClass('grid')
+    $('.keyboard-key').removeClass('correct-keyboard-key partially-correct-keyboard-key wrong-keyboard-key')
+    setupGame()
+}
+
+
+function showEndMessage() {
+    const $endMessage = $('#endMessage')
+    $("#total-guesses").text('Tentativi: ' + (gameState.currentRow + 1))
+    $endMessage.removeClass('show')
+    void $endMessage[0].offsetWidth
+    $endMessage.addClass('show')
+}
+
+function hideEndMessage() {
+    const $endMessage = $('#endMessage')
+    $endMessage.removeClass('show')
+}
+
+function checkDisplayKeyboardInput() {
+    const key = $(this).attr("data-key")
+
+    if(/^[a-z]$/.test(key)) {
+        handleLetterInput(key)
+    } else if(key === 'backspace') {
+        handleBackspaceInput(key)
+    } else if(key === 'enter') {
+        handleEnterInput(key)
+    }
+}
+
+
+function updateDisplayKeyboardKeyColor(key, level) {
+    const $key = $(`.keyboard-key[data-key=${key}]`)
+
+    if ($key.hasClass('correct-keyboard-key')) return
+
+    if(level === 'correct') {
+        $key.removeClass('partially-correct-keyboard-key wrong-keyboard-key').addClass('correct-keyboard-key')
+        return
+    }
+
+    if(level === 'partially-correct') {
+        $key.removeClass('wrong-keyboard-key').addClass('partially-correct-keyboard-key')
+        return
+    }
+
+    if(level === 'wrong') $key.addClass('wrong-keyboard-key')
 }

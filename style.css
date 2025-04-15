@@ -5,15 +5,13 @@
 }
 
 :root {
-    --main-color: hsl(0, 0%, 10%);
-    --secondary-color: hsl(0, 0%, 20%);
-    --text-color: hsl(0, 0%, 80%);
-    --wrong-tile: hsl(0, 100%, 35%);
-    --wrong-tile-bg: hsl(0, 15%, 35%);
-    --partially-correct-tile: hsl(48, 100%, 50%);
-    --partially-correct-tile-bg: hsl(48, 15%, 50%);
-    --correct-tile: hsl(120, 60%, 50%);
-    --correct-tile-bg: hsl(120, 15%, 50%);
+    -user-select: none;
+    -webkit-user-select: none;
+    --main-color: hsl(240, 3%, 7%);
+    --text-color: hsl(0, 0%, 95%);
+    --wrong-tile: hsl(240, 2%, 23%);
+    --partially-correct-tile: hsl(49, 51%, 47%);
+    --correct-tile: hsl(115, 29%, 43%);
     --tile-size: calc(min(10vmin, 80px - (6 - var(--word-length)) * 6px));
 }
 
@@ -22,6 +20,18 @@ body {
     background: var(--main-color);
     color: var(--text-color);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.grid {
+    display: grid !important;
+}
+
+#title-div {
+    padding: 0.5em;
+    outline: 1px solid var(--text-color);
+    display: grid;
+    place-content: center;
+    margin-bottom: 1.5em;
 }
 
 .board {
@@ -35,7 +45,7 @@ body {
 }
 
 .row {
-    display: grid;
+    /*display: grid;*/
     grid-template-columns: repeat(var(--word-length), 1fr);
     gap: 0.5rem;
 }
@@ -43,7 +53,7 @@ body {
 .tile {
     aspect-ratio: 1;
     font-size: calc(var(--tile-size) * 0.6);
-    background-color: var(--secondary-color);
+    background-color: var(--main-color);
     border: 2px solid #999;
     display: flex;
     align-items: center;
@@ -58,17 +68,106 @@ body {
 
 .tile.partially-correct {
     border-color: var(--partially-correct-tile);
-    background: var(--partially-correct-tile-bg);
+    background: var(--partially-correct-tile);
 }
 
 .tile.correct {
     border-color: var(--correct-tile);
-    background: var(--correct-tile-bg);
+    background: var(--correct-tile);
 }
 
 .tile.wrong {
     border-color: var(--wrong-tile);
-    background: var(--wrong-tile-bg);
+    background: var(--wrong-tile);
+}
+
+#endMessage {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -100%);
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5em;
+    padding: 1em;
+    width: min(300px, 100%);
+    outline: 1px solid var(--text-color);
+    border-radius: 10px;
+    background: var(--main-color);
+    transition: transform 0.6s ease-out, opacity 0.6 ease-out;
+    opacity: 0;
+}
+
+#endMessage.show {
+    display: flex;
+    animation: slideDownFade 0.6s ease-out forwards;
+}
+
+#btn-restart-game {
+    padding: 1em;
+    border-radius: 10px;
+}
+
+
+.keyboard-container {
+    /*display: grid;*/
+    display: none;
+    gap: 0.5em;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    max-width: min(100%, 500px);
+    padding: 1em;
+    /*border: 1px solid red;*/
+    margin: 0 auto;
+}
+
+.keyboard-key {
+    /*display: grid;*/
+    border-radius: 5px;
+    place-content: center;
+    padding: 1em 0;
+    font-weight: bold;
+}
+
+.keyboard-key {
+    cursor: pointer;
+    background: hsl(200, 1%, 51%);
+    grid-column : span 2;
+}
+
+.spacer-half {
+    grid-column : span 1;
+}
+
+.wide-button {
+    grid-column : span 3;
+}
+
+.wrong-keyboard-key {
+    background: var(--wrong-tile);
+}
+
+.partially-correct-keyboard-key {
+    background: var(--partially-correct-tile);
+}
+
+.correct-keyboard-key {
+    background: var(--correct-tile);
+}
+
+
+
+
+@keyframes slideDownFade {
+    from {
+        transform: translate(-50%, -150%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
 }
 
 @media (min-width: 768px) {
