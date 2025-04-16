@@ -102,7 +102,15 @@ function handleEnterInput(key) {
     const guess = guessLetters.join("")
 
     if(!gameSettings.wordsSet.has(guess)) {
-        alert("Parola non presente nella lista")
+        const $guessRow = $(`.row:eq(${gameState.currentRow})`)
+        $guessRow.addClass("shake")
+
+        /*setTimeout(() => {
+            $guessRow.removeClass("shake")
+        }, 400)*/
+
+        showToast("Parola non presente nella lista")
+
         return
     }
 
@@ -137,13 +145,25 @@ function handleEnterInput(key) {
     })
 
     if(guess === secretWord) {
+        guessTiles.each(function(i) {
+            const tile = $(this)
+            setTimeout(() => {
+                tile.addClass('bounce')
+            }, i * 100)
+        })
         gameState.isGameOver = true
-        showEndMessage()
+        showEndMessage('Hai indovinato!', `Tentativi: ${gameState.currentRow + 1}`)
         return
     }
 
     gameState.currentRow++
     gameState.currentTile = 0
+
+    if(gameState.currentRow > 5) {
+        gameState.isGameOver = true
+        showEndMessage('Peccato!', `La parola era ${gameState.secretWord.toUpperCase()}`)
+        return
+    }
 }
 
 function resetGame() {
@@ -160,13 +180,14 @@ function resetGame() {
     setupGame()
 }
 
-
-function showEndMessage() {
+function showEndMessage(title, guesses) {
     const $endMessage = $('#endMessage')
-    $("#total-guesses").text('Tentativi: ' + (gameState.currentRow + 1))
+    $('#end-message-title').text(title)
+    $("#total-guesses").text(guesses)
     $endMessage.removeClass('show')
     void $endMessage[0].offsetWidth
     $endMessage.addClass('show')
+    setTimeout(() => {$('#btn-restart-game').focus()}, 0)
 }
 
 function hideEndMessage() {
@@ -203,4 +224,14 @@ function updateDisplayKeyboardKeyColor(key, level) {
     }
 
     if(level === 'wrong') $key.addClass('wrong-keyboard-key')
+}
+
+function showToast(message) {
+    const $toast = $('.notification')
+    console.log($toast)
+    $toast.text(message).addClass('show')
+
+    setTimeout(() => {
+        $toast.removeClass('show')
+    }, 2000)
 }
