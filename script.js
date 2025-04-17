@@ -103,7 +103,10 @@ function handleEnterInput(key) {
 
     if(!gameSettings.wordsSet.has(guess)) {
         const $guessRow = $(`.row:eq(${gameState.currentRow})`)
-        $guessRow.addClass("shake")
+        $guessRow.addClass('shake')
+        $guessRow.on('animationend', function() {
+            $(this).removeClass('shake')
+        })
 
         /*setTimeout(() => {
             $guessRow.removeClass("shake")
@@ -118,52 +121,77 @@ function handleEnterInput(key) {
     const rightLettersWrongPlace = []
     const secretWordObj = {...gameState.secretWordObj}
 
-    guessTiles.each(function(i) {
-        const char = guessLetters[i]
-        
-        if(char === secretWord[i]) {
-            $(this).addClass('correct')
+    // Calcolo del tempo massimo necessario per completare i flip
+    const flipDelay = 300
+    const flipDuration = 300
+    const totalFlipTime = guessTiles.length * flipDelay + flipDuration
 
-            updateDisplayKeyboardKeyColor($(this).text(), 'correct')
+    // Step 1: Assegna lo stato ma non la classe
+        guessTiles.each(function(i) {
+            const tile = $(this)
+            const char = guessLetters[i]
 
-            secretWordObj[char]--
-        } else {
-            rightLettersWrongPlace.push({ index : i, char })
-        }
-    })
+            if (char === secretWord[i]) {
+                tile.attr('data-state', 'correct')
+                secretWordObj[char]--
+            } else {
+                rightLettersWrongPlace.push({ index: i, char })
+            }
+        })
 
-    rightLettersWrongPlace.forEach(({ index, char }) => {
-        const tile = guessTiles.eq(index)
-        if(secretWordObj[char] > 0) {
-            tile.addClass('partially-correct')
-            updateDisplayKeyboardKeyColor(tile.text(), 'partially-correct')
-            secretWordObj[char]--
-        } else {
-            tile.addClass('wrong')
-            updateDisplayKeyboardKeyColor(tile.text(), 'wrong')
-        }
-    })
+        // Step 2: lettere parziali o sbagliate
+        rightLettersWrongPlace.forEach(({ index, char }) => {
+            const tile = guessTiles.eq(index)
+            if (secretWordObj[char] > 0) {
+                tile.attr('data-state', 'partially-correct')
+                secretWordObj[char]--
+            } else {
+                tile.attr('data-state', 'wrong')
+            }
+        })
 
-    if(guess === secretWord) {
+        // Step 3: Anima i tile uno a uno
         guessTiles.each(function(i) {
             const tile = $(this)
             setTimeout(() => {
-                tile.addClass('bounce')
-            }, i * 100)
+                tile.addClass('flip')
+                tile.on('animationend', function() {
+                    tile.removeClass('flip')
+                })
+                setTimeout(() => {
+                    const state = tile.attr('data-state')
+                    if (state) {
+                        tile.addClass(state)
+                        updateDisplayKeyboardKeyColor(tile.text(), state)
+                    }
+                }, flipDuration / 2)
+            }, i * flipDelay)
         })
-        gameState.isGameOver = true
-        showEndMessage('Hai indovinato!', `Tentativi: ${gameState.currentRow + 1}`)
-        return
-    }
 
-    gameState.currentRow++
-    gameState.currentTile = 0
+        // Step 4: Post-flip azioni finali
+        setTimeout(() => {
+            if (guess === secretWord) {
+                // Bounce animation
+                guessTiles.each(function(i) {
+                    const tile = $(this)
+                    setTimeout(() => {
+                        tile.addClass('bounce')
+                    }, i * 100)
+                })
 
-    if(gameState.currentRow > 5) {
-        gameState.isGameOver = true
-        showEndMessage('Peccato!', `La parola era ${gameState.secretWord.toUpperCase()}`)
-        return
-    }
+                gameState.isGameOver = true
+                showEndMessage('Hai indovinato!', `Tentativi: ${gameState.currentRow + 1}`)
+                return
+            }
+
+            gameState.currentRow++
+            gameState.currentTile = 0
+
+            if (gameState.currentRow > 5) {
+                gameState.isGameOver = true
+                showEndMessage('Peccato!', `La parola era ${gameState.secretWord.toUpperCase()}`)
+            }
+        }, totalFlipTime)
 }
 
 function resetGame() {
@@ -181,7 +209,7 @@ function resetGame() {
 }
 
 function showEndMessage(title, guesses) {
-    const $endMessage = $('#endMessage')
+    const $endMessage = $('#end-message')
     $('#end-message-title').text(title)
     $("#total-guesses").text(guesses)
     $endMessage.removeClass('show')
@@ -191,7 +219,7 @@ function showEndMessage(title, guesses) {
 }
 
 function hideEndMessage() {
-    const $endMessage = $('#endMessage')
+    const $endMessage = $('#end-message')
     $endMessage.removeClass('show')
 }
 
@@ -200,7 +228,7 @@ function checkDisplayKeyboardInput() {
 
     if(/^[a-z]$/.test(key)) {
         handleLetterInput(key)
-    } else if(key === 'backspace') {
+    } else if(key === 'del') {
         handleBackspaceInput(key)
     } else if(key === 'enter') {
         handleEnterInput(key)
