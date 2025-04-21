@@ -49,7 +49,34 @@
     <div id="end-message">
         <h3 id="end-message-title"></h3>
         <p id="total-guesses"></p>
-        <button id="btn-restart-game">Gioca ancora</button>
+        <div class="end-message-div">
+            <h2>STATISTICS</h2>
+            <div class="stats-row">
+                <div class="stats-block">
+                  <div class="stats-value">1</div>
+                  <div class="stats-label">Played</div>
+                </div>
+                <div class="stats-block">
+                  <div class="stats-value">100</div>
+                  <div class="stats-label">Win %</div>
+                </div>
+                <div class="stats-block">
+                  <div class="stats-value">1</div>
+                  <div class="stats-label">Current<br>Streak</div>
+                </div>
+                <div class="stats-block">
+                  <div class="stats-value">2</div>
+                  <div class="stats-label">Max<br>Streak</div>
+                </div>
+            </div>              
+        </div>
+        <div class="end-message-div">
+            <h2>GUESS DISTRIBUTION</h2>
+            <div id="stats-graph">
+            </div>
+        </div>
+        
+        <button id="btn-restart-game">RIGIOCA<span><svg id="svg-restart-game" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440q0-75 28.5-140.5t77-114q48.5-48.5 114-77T480-800h6l-62-62 56-58 160 160-160 160-56-58 62-62h-6q-117 0-198.5 81.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440h80q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z"/></svg></span></button>
     </div>
 
     <div class="notification"></div>

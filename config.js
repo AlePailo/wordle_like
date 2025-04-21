@@ -1,6 +1,7 @@
 export const gameSettings = {
     wordsList: null,
-    wordsSet: null
+    wordsSet: null,
+    maxChances: 6
 }
 
 export const gameState = {

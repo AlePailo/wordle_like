@@ -39,14 +39,13 @@ function setupGame() {
 function buildGrid(wordLength) {
     const board = $('.board')
     $('html').css('--word-length', wordLength)
-    const numRows = 6
 
-    const rows = Array.from({ length: numRows }, (_, rowIndex) => {
-    const row = $('<div>').addClass('row grid')
-    Array.from({ length: wordLength }).forEach(() => {
-        $('<div>').addClass('tile').appendTo(row)
-    })
-    return row
+    const rows = Array.from({ length: gameSettings.maxChances }, (_, rowIndex) => {
+        const row = $('<div>').addClass('row grid')
+        Array.from({ length: wordLength }).forEach(() => {
+            $('<div>').addClass('tile').appendTo(row)
+        })
+        return row
     })
 
     board.append(rows)
@@ -68,9 +67,23 @@ function checkKeyInput(e) {
     if(/^[a-z]$/.test(key)) {
         handleLetterInput(key)
     } else if(key === 'backspace') {
-        handleBackspaceInput(key)
+        handleBackspaceInput()
     } else if(key === 'enter') {
-        handleEnterInput(key)
+        handleEnterInput()
+    }
+}
+
+function checkDisplayKeyboardInput() {
+    if(gameState.isGameOver) return
+
+    const key = $(this).attr("data-key")
+
+    if(/^[a-z]$/.test(key)) {
+        handleLetterInput(key)
+    } else if(key === 'del') {
+        handleBackspaceInput()
+    } else if(key === 'enter') {
+        handleEnterInput()
     }
 }
 
@@ -82,7 +95,7 @@ function handleLetterInput(key) {
     }
 }
 
-function handleBackspaceInput(key) {
+function handleBackspaceInput() {
     if (gameState.currentTile > 0) {
         gameState.currentTile--
         const $tile = $(`.row:eq(${gameState.currentRow}) .tile:eq(${gameState.currentTile})`)
@@ -90,7 +103,7 @@ function handleBackspaceInput(key) {
     }
 }
 
-function handleEnterInput(key) {
+function handleEnterInput() {
     if(gameState.currentTile !== gameState.wordLength) return
 
     const guessTiles = $(`.row:eq(${gameState.currentRow}) .tile`)
@@ -107,10 +120,6 @@ function handleEnterInput(key) {
         $guessRow.on('animationend', function() {
             $(this).removeClass('shake')
         })
-
-        /*setTimeout(() => {
-            $guessRow.removeClass("shake")
-        }, 400)*/
 
         showToast("Parola non presente nella lista")
 
@@ -180,6 +189,7 @@ function handleEnterInput(key) {
                 })
 
                 gameState.isGameOver = true
+                updateStats(true, gameState.currentRow + 1)
                 showEndMessage('Hai indovinato!', `Tentativi: ${gameState.currentRow + 1}`)
                 return
             }
@@ -189,6 +199,7 @@ function handleEnterInput(key) {
 
             if (gameState.currentRow > 5) {
                 gameState.isGameOver = true
+                updateStats(false)
                 showEndMessage('Peccato!', `La parola era ${gameState.secretWord.toUpperCase()}`)
             }
         }, totalFlipTime)
@@ -209,30 +220,25 @@ function resetGame() {
 }
 
 function showEndMessage(title, guesses) {
+    const playerStats = JSON.parse(localStorage.getItem('playerStats'))
     const $endMessage = $('#end-message')
     $('#end-message-title').text(title)
     $("#total-guesses").text(guesses)
+    const statsValue = $('.stats-value')
+    statsValue.eq(0).text(playerStats.playedGames)
+    statsValue.eq(1).text(playerStats.winPercentage)
+    statsValue.eq(2).text(playerStats.currentStreak)
+    statsValue.eq(3).text(playerStats.maxStreak)
     $endMessage.removeClass('show')
     void $endMessage[0].offsetWidth
     $endMessage.addClass('show')
+    renderStatsGraph()
     setTimeout(() => {$('#btn-restart-game').focus()}, 0)
 }
 
 function hideEndMessage() {
     const $endMessage = $('#end-message')
     $endMessage.removeClass('show')
-}
-
-function checkDisplayKeyboardInput() {
-    const key = $(this).attr("data-key")
-
-    if(/^[a-z]$/.test(key)) {
-        handleLetterInput(key)
-    } else if(key === 'del') {
-        handleBackspaceInput(key)
-    } else if(key === 'enter') {
-        handleEnterInput(key)
-    }
 }
 
 
@@ -242,12 +248,12 @@ function updateDisplayKeyboardKeyColor(key, level) {
     if ($key.hasClass('correct-keyboard-key')) return
 
     if(level === 'correct') {
-        $key.removeClass('partially-correct-keyboard-key wrong-keyboard-key').addClass('correct-keyboard-key')
+        $key.removeClass('partially-correct-keyboard-key').addClass('correct-keyboard-key')
         return
     }
 
     if(level === 'partially-correct') {
-        $key.removeClass('wrong-keyboard-key').addClass('partially-correct-keyboard-key')
+        $key.addClass('partially-correct-keyboard-key')
         return
     }
 
@@ -256,10 +262,71 @@ function updateDisplayKeyboardKeyColor(key, level) {
 
 function showToast(message) {
     const $toast = $('.notification')
-    console.log($toast)
     $toast.text(message).addClass('show')
 
     setTimeout(() => {
         $toast.removeClass('show')
     }, 2000)
+}
+
+
+function updateStats(win, attempts) {
+
+    const playerStats = JSON.parse(localStorage.getItem('playerStats')) || {
+        guessesDistribution : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+        playedGames : 0,
+        winCount : 0,
+        winPercentage : 0,
+        currentStreak : 0,
+        maxStreak : 0
+    }
+
+    if(win) {
+        playerStats.guessesDistribution[attempts]++
+        playerStats.winCount++
+        playerStats.currentStreak++
+        if(playerStats.currentStreak > playerStats.maxStreak) playerStats.maxStreak = playerStats.currentStreak
+    } else {
+        playerStats.currentStreak = 0
+    }
+
+    playerStats.playedGames++
+    playerStats.winPercentage = Math.round(playerStats.winCount / playerStats.playedGames * 100)
+
+    localStorage.setItem('playerStats', JSON.stringify(playerStats))
+    console.log(localStorage.getItem('playerStats'))
+}
+
+
+function renderStatsGraph() {
+    const playerStats = JSON.parse(localStorage.getItem('playerStats')) || {}
+    const guessesDistribution = playerStats.guessesDistribution
+    const container = $('#stats-graph')
+    container.empty()
+
+    const allValues = Object.values(guessesDistribution)
+    const max = Math.max(...allValues, 1) // per evitare divisione per 0
+
+    for (let i = 1; i <= gameSettings.maxChances; i++) {
+        const count = guessesDistribution[i] || 0
+        const percentage = (count / max) * 100
+        console.log(count, percentage)
+
+        container.append(`
+            <div class="stat-row">
+                <span>${i}</span>
+                <div class="bar" style="width: ${percentage}%">${count}</div>
+            </div>
+        `)
+    }
+
+    /*// Falliti
+    const failCount = stats.fail || 0
+    const failPerc = (failCount / max) * 100
+    container.append(`
+        <div class="stat-row">
+            <span>X</span>
+            <div class="bar" style="width: ${failPerc}%">${failCount}</div>
+        </div>
+    `)*/
 }
